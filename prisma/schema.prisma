@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  name        String
+  isPermanent Boolean    @default(true)
+  isRetired   Boolean    @default(false)
+  retiredAt   DateTime?
+  createdAt   DateTime   @default(now())
+  entries     DayEntry[]
+}
+
+model DayRecord {
+  id      String     @id @default(cuid())
+  date    String     @unique // "YYYY-MM-DD" local time
+  entries DayEntry[]
+}
+
+model DayEntry {
+  id          String    @id @default(cuid())
+  dayRecord   DayRecord @relation(fields: [dayRecordId], references: [id])
+  dayRecordId String
+  task        Task      @relation(fields: [taskId], references: [id])
+  taskId      String
+  status      String    @default("not_done") // "not_done" | "done"
+  note        String    @default("")
+  isCustom    Boolean   @default(false)
+  updatedAt   DateTime  @updatedAt
+}

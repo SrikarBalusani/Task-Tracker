@@ -1,69 +1,94 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { verifyPin } from '@/app/actions'
+import { Lock, Eye } from 'lucide-react'
+
+export default function LandingPage() {
+  const router = useRouter()
+  const [showPin, setShowPin] = useState(false)
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleViewMode = () => {
+    router.push('/dashboard')
+  }
+
+  const handleEditMode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    
+    const res = await verifyPin(pin)
+    if (res.success) {
+      router.push('/dashboard')
+    } else {
+      setError('Incorrect PIN')
+      setPin('')
+    }
+    setIsLoading(false)
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 text-center">
+        <h1 className="text-3xl font-bold tracking-tight mb-2 text-gray-900">Progress Tracker</h1>
+        <p className="text-gray-500 mb-8">Stay on top of your daily goals.</p>
+
+        {!showPin ? (
+          <div className="space-y-4">
+            <button
+              onClick={() => setShowPin(true)}
+              className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white font-medium py-3.5 rounded-xl hover:bg-gray-800 transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <Lock size={18} />
+              I'm Srikar (Edit)
+            </button>
+            <button
+              onClick={handleViewMode}
+              className="w-full flex items-center justify-center gap-2 bg-gray-50 text-gray-700 font-medium py-3.5 rounded-xl hover:bg-gray-100 transition-colors"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+              <Eye size={18} />
+              View Only
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleEditMode} className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div>
+              <input
+                type="password"
+                placeholder="Enter PIN"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                autoFocus
+                className="w-full text-center text-2xl tracking-widest py-3 border-b-2 border-gray-200 focus:border-apple-blue focus:outline-none transition-colors"
+                maxLength={4}
+                disabled={isLoading}
+              />
+              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            </div>
+            
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowPin(false)}
+                className="flex-1 py-3 bg-gray-50 text-gray-600 font-medium rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={pin.length < 4 || isLoading}
+                className="flex-1 py-3 bg-apple-blue text-white font-medium rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Verifying...' : 'Unlock'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
-  );
+  )
 }

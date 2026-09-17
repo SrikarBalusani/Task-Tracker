@@ -75,7 +75,7 @@ export async function getDashboardData(dateStr: string) {
 
 export async function toggleTaskStatus(entryId: string, status: string) {
   const isEditMode = await checkIsEditMode()
-  if (!isEditMode) return { success: false, error: 'Unauthorized' }
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
 
   await prisma.dayEntry.update({
     where: { id: entryId },
@@ -87,7 +87,7 @@ export async function toggleTaskStatus(entryId: string, status: string) {
 
 export async function updateTaskNote(entryId: string, note: string) {
   const isEditMode = await checkIsEditMode()
-  if (!isEditMode) return { success: false, error: 'Unauthorized' }
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
 
   await prisma.dayEntry.update({
     where: { id: entryId },
@@ -99,7 +99,7 @@ export async function updateTaskNote(entryId: string, note: string) {
 
 export async function addCustomTask(dateStr: string, name: string, makePermanent: boolean) {
   const isEditMode = await checkIsEditMode()
-  if (!isEditMode) return { success: false, error: 'Unauthorized' }
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
 
   // Create the task
   const task = await prisma.task.create({
@@ -129,7 +129,7 @@ export async function addCustomTask(dateStr: string, name: string, makePermanent
 
 export async function removePermanentTask(taskId: string) {
   const isEditMode = await checkIsEditMode()
-  if (!isEditMode) return { success: false, error: 'Unauthorized' }
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
 
   await prisma.task.update({
     where: { id: taskId },
@@ -141,7 +141,7 @@ export async function removePermanentTask(taskId: string) {
 
 export async function retireTask(taskId: string) {
   const isEditMode = await checkIsEditMode()
-  if (!isEditMode) return { success: false, error: 'Unauthorized' }
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
 
   await prisma.task.update({
     where: { id: taskId },

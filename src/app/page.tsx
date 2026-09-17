@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { verifyPin } from '@/app/actions'
+import { verifyPin, logout } from '@/app/actions'
 import { Lock, Eye } from 'lucide-react'
 
 export default function LandingPage() {
@@ -12,7 +12,8 @@ export default function LandingPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleViewMode = () => {
+  const handleViewMode = async () => {
+    await logout()
     router.push('/dashboard')
   }
 

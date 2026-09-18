@@ -112,7 +112,7 @@ export async function addCustomTask(dateStr: string, name: string, makePermanent
   // Get the day record (create if doesn't exist just in case)
   let dayRecord = await prisma.dayRecord.findUnique({ where: { date: dateStr } })
   if (!dayRecord) {
-     dayRecord = await getDashboardData(dateStr) as any
+    dayRecord = await getDashboardData(dateStr) as any
   }
 
   await prisma.dayEntry.create({
@@ -165,14 +165,82 @@ export async function getHallOfFame() {
   })
 }
 
-export async function getHistory() {
+export async function getHistory(excludeDate: string) {
   return await prisma.dayRecord.findMany({
+    where: {
+      date: { not: excludeDate },
+      entries: { some: { status: 'done' } }
+    },
     include: {
       entries: {
+        where: { status: 'done' },
         include: { task: true },
         orderBy: { id: 'asc' }
       }
     },
     orderBy: { date: 'desc' }
   })
+}
+
+export async function deleteCustomTask(entryId: string, taskId: string) {
+  const isEditMode = await checkIsEditMode()
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
+
+  // Delete the entry first, then the task itself (custom tasks are unique, single-use)
+  await prisma.dayEntry.delete({
+    where: { id: entryId }
+  })
+
+  await prisma.task.delete({
+    where: { id: taskId }
+  })
+
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+export async function deleteHistoryEntry(entryId: string) {
+  const isEditMode = await checkIsEditMode()
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
+  await prisma.dayEntry.delete({ where: { id: entryId } })
+  revalidatePath('/history')
+  return { success: true }
+}
+
+export async function emptyHistory(excludeDate: string) {
+  const isEditMode = await checkIsEditMode()
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
+
+  const oldRecords = await prisma.dayRecord.findMany({
+    where: { date: { not: excludeDate } },
+    select: { id: true }
+  })
+  const ids = oldRecords.map(r => r.id)
+
+  await prisma.dayEntry.deleteMany({ where: { dayRecordId: { in: ids } } })
+  await prisma.dayRecord.deleteMany({ where: { id: { in: ids } } })
+
+  revalidatePath('/history')
+  return { success: true }
+}
+
+export async function unretireTask(taskId: string) {
+  const isEditMode = await checkIsEditMode()
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
+  await prisma.task.update({
+    where: { id: taskId },
+    data: { isPermanent: true, isRetired: false, retiredAt: null }
+  })
+  revalidatePath('/dashboard')
+  revalidatePath('/hall-of-fame')
+  return { success: true }
+}
+
+export async function deleteRetiredTask(taskId: string) {
+  const isEditMode = await checkIsEditMode()
+  if (!isEditMode) throw new Error('Unauthorized - Edit Mode required')
+  await prisma.dayEntry.deleteMany({ where: { taskId } })
+  await prisma.task.delete({ where: { id: taskId } })
+  revalidatePath('/hall-of-fame')
+  return { success: true }
 }

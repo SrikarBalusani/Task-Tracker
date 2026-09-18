@@ -1,12 +1,15 @@
 'use client'
 
+import { motion } from 'framer-motion'
+
 export function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (c: boolean) => void; disabled?: boolean }) {
   return (
-    <button
+    <motion.button
       type="button"
       role="switch"
       aria-checked={checked}
       disabled={disabled}
+      whileTap={disabled ? undefined : { scale: 0.85 }}
       onClick={() => onChange(!checked)}
       className={`
         relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent 
@@ -22,6 +25,6 @@ export function Toggle({ checked, onChange, disabled }: { checked: boolean; onCh
           ${checked ? 'translate-x-5' : 'translate-x-0'}
         `}
       />
-    </button>
+    </motion.button>
   )
 }

@@ -4,6 +4,8 @@ A personal daily task-tracking app to log daily study/work progress
 (DSA, OS, JS Project, German learning, GATE prep, etc.) with a 
 read-only view for my brother to check my progress anytime.
 
+🔗 **Live site:** [task-tracker-one-gamma-93.vercel.app](https://task-tracker-one-gamma-93.vercel.app/)
+
 ## Features
 - Daily tasks reset automatically at midnight
 - Mark tasks as Done/Not done with notes
